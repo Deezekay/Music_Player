@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Uploads (local dev)
+uploads/
+
+# FFmpeg output (audio files only, not TypeScript)
+*.mp3
+*.wav
+*.ogg
+*.m3u8
+# HLS segments (use specific pattern to avoid blocking .ts source files)
+segment_*.ts
+*_segment_*.ts
+
+# MinIO data (if running locally without Docker)
+minio-data/
+
+# CDN keys
+*.pem
+cloudfront-*.pem
+
+# Misc
+.cache/
+.parcel-cache/

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get SoundHelix Durations</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+
+        h1 {
+            color: #00ff00;
+            text-align: center;
+        }
+
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #00ff00;
+            min-height: 100px;
+        }
+
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #00ff00;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .done {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .loading {
+            color: #ffff00;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎵 SoundHelix Duration Checker</h1>
+    <div id="status">
+        <p class="loading">⏳ Loading song durations...</p>
+    </div>
+    <div id="results"></div>
+
+    <script>
+        const songs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const durations = {};
+        let completed = 0;
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+
+        function updateStatus(message, isLoading = true) {
+            statusDiv.innerHTML = `<p class="${isLoading ? 'loading' : 'done'}">${message}</p>`;
+        }
+
+        function updateResults(message) {
+            resultsDiv.innerHTML += message + '\n';
+        }
+
+        updateStatus('⏳ Fetching durations for 10 songs...');
+
+        for (const songNum of songs) {
+            const audio = new Audio(`https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${songNum}.mp3`);
+
+            audio.addEventListener('loadedmetadata', () => {
+                const dur = Math.round(audio.duration);
+                const mins = Math.floor(dur / 60);
+                const secs = (dur % 60).toString().padStart(2, '0');
+
+                durations[songNum] = dur;
+                completed++;
+
+                updateResults(`✅ Song ${songNum}: ${mins}:${secs} (${dur} seconds)`);
+                updateStatus(`⏳ Loaded ${completed}/10 songs...`);
+
+                if (completed === 10) {
+                    updateStatus('✅ All durations loaded!', false);
+                    updateResults('\n=============================');
+                    updateResults('COPY THIS JSON FOR THE SEED SCRIPT:');
+                    updateResults('=============================\n');
+                    updateResults(JSON.stringify(durations, null, 2));
+                    updateResults('\n=============================');
+                    updateResults('TYPESCRIPT ARRAY:');
+                    updateResults('=============================\n');
+                    const tsArray = Object.entries(durations).map(([song, dur]) => {
+                        const mins = Math.floor(dur / 60);
+                        const secs = (dur % 60).toString().padStart(2, '0');
+                        return `  Song ${song}: duration: ${dur}, // ${mins}:${secs}`;
+                    }).join('\n');
+                    updateResults(tsArray);
+                }
+            });
+
+            audio.addEventListener('error', (e) => {
+                updateResults(`❌ Error loading Song ${songNum}`);
+                completed++;
+                if (completed === 10) {
+                    updateStatus('⚠️ Completed with errors', false);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
