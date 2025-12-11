@@ -1,3 +1,52 @@
+# Node
+node_modules/
+dist/
+build/
+out/
+/.parcel-cache
+/.next/
+/.nuxt/
+npm-debug.log
+yarn-error.log
+package-lock.json
+pnpm-lock.yaml
+
+# TypeScript
+*.tsbuildinfo
+
+# VSCode
+.vscode/
+
+# Local env
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Media (do NOT commit large audio files)
+*.mp3
+*.flac
+*.wav
+*.m4a
+*.aac
+media/
+audio/
+
+# Docker
+node_modules/**/node_modules
+docker-compose.override.yml
+
+# Misc
+coverage/
+.cache/
+jest-cache/
+/*.tgz
 # Dependencies
 node_modules/
 .pnp
