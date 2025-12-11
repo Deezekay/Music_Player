@@ -45,9 +45,9 @@ A modern, feature-rich music streaming platform built with the MERN stack, featu
 - **TypeScript**
 - **MongoDB** with Mongoose
 - **JWT** authentication
-- **MinIO** object storage
-- **FFmpeg** for audio processing
-- **HLS** streaming
+- **MinIO / S3** object storage (S3-compatible)
+- **FFmpeg** for audio processing (worker uses `fluent-ffmpeg`)
+- **HLS** streaming (server exposes streaming endpoints)
 
 ## 📦 Installation
 
@@ -60,66 +60,82 @@ A modern, feature-rich music streaming platform built with the MERN stack, featu
 ### Setup
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/music-player.git
-cd music-player
+```powershell
+git clone https://github.com/Deezekay/Music_Player.git
+cd Music_Player
 ```
 
-2. **Install dependencies**
-```bash
-# Install backend dependencies
+2. **Install dependencies (monorepo workspaces)**
+Run from the repository root — this installs `backend`, `frontend`, and `worker` packages:
+```powershell
 npm install
-
-# Install frontend dependencies
-cd frontend
-npm install
-cd ..
 ```
 
 3. **Environment Configuration**
 
-Create `.env` file in the root directory:
+Create a `.env` file in the repository root. The backend reads configuration from this file (see `backend/src/config/index.ts`). Example variables used by this project:
 ```env
 # Server
 PORT=3001
 NODE_ENV=development
 
 # Database
-MONGODB_URI=mongodb://localhost:27017/music-player
+MONGO_URI=mongodb://localhost:27017/musicplayer
 
 # JWT
 JWT_SECRET=your-secret-key-here
+JWT_REFRESH_SECRET=your-refresh-secret-here
 
-# MinIO / S3
-MINIO_ENDPOINT=localhost
-MINIO_PORT=9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=music-player
-MINIO_USE_SSL=false
+# S3 / MinIO (S3-compatible)
+S3_ENDPOINT=http://localhost:9000
+S3_BUCKET=music-player
+S3_REGION=us-east-1
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=minioadmin123
+S3_USE_PATH_STYLE=true
 
 # Frontend URL
 FRONTEND_URL=http://localhost:5173
+
+# Optional: Redis / BullMQ
+REDIS_URL=redis://localhost:6379
 ```
 
-4. **Start MongoDB**
-```bash
+Notes:
+- The config file expects `MONGO_URI`, `S3_*` and `AWS_*` environment variables (see `backend/src/config/index.ts`).
+- In production you must set `JWT_SECRET`, `JWT_REFRESH_SECRET` and a production `MONGO_URI`.
+
+4. **Start services**
+
+- Start MongoDB (example):
+```powershell
 mongod
 ```
 
-5. **Start MinIO**
-```bash
+- Start MinIO (example):
+```powershell
 minio server ./minio-data
 ```
 
-6. **Run the application**
-```bash
-# Development mode (runs both frontend and backend)
-npm run dev
+You can also use `docker compose` defined in `docker-compose.yml` for a local stack (MongoDB, MinIO, Redis):
+```powershell
+npm run docker:up
+# stop
+npm run docker:down
+```
 
-# Or run separately:
-npm run dev:backend    # Backend on port 3001
-npm run dev:frontend   # Frontend on port 5173
+5. **Run the application**
+
+Run both backend and frontend from the repo root:
+```powershell
+npm run dev
+```
+
+Or run a single workspace:
+```powershell
+npm run dev:backend   # runs backend (uses tsx watch on src/index.ts)
+npm run dev:frontend  # runs frontend (Vite)
+npm run dev:worker    # runs worker (transcoding queue)
 ```
 
 7. **Access the application**
@@ -138,7 +154,7 @@ Music_Player/
 │   │   ├── models/          # Mongoose models
 │   │   ├── routes/          # API routes
 │   │   ├── services/        # Business logic
-│   │   └── server.ts        # Entry point
+│   │   └── index.ts         # Entry point (dev uses tsx watch src/index.ts)
 │   └── package.json
 ├── frontend/
 │   ├── src/
@@ -148,8 +164,10 @@ Music_Player/
 │   │   ├── store/           # Redux store
 │   │   └── App.tsx          # Root component
 │   └── package.json
+├── worker/                  # Transcoding / async workers
 ├── .gitignore
-├── package.json
+├── .gitattributes           # Git LFS settings for audio files
+├── package.json             # Workspace scripts (dev/build/test)
 └── README.md
 ```
 
@@ -183,7 +201,7 @@ Music_Player/
 - `POST /api/artists/:id/follow` - Follow artist
 
 ### Streaming
-- `GET /api/stream/:id` - Get HLS stream URL
+- `GET /api/stream/:id` - Get HLS stream URL (proxy/manifest)
 - `GET /api/stream/:id/waveform` - Get waveform data
 
 ## 🎨 UI Components
@@ -206,7 +224,7 @@ Music_Player/
 
 ## 📝 License
 
-MIT License - feel free to use this project for learning or commercial purposes.
+MIT License — feel free to use this project for learning or commercial purposes.
 
 ## 🤝 Contributing
 
